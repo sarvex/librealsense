@@ -6,10 +6,9 @@ import math
 from matplotlib import pyplot as plt
 import os
 
-filename = "‪D:/dataset/gt-4622.png"
-if (len(sys.argv) > 1):
-    filename = str(sys.argv[1])
-
+filename = (
+    str(sys.argv[1]) if (len(sys.argv) > 1) else "‪D:/dataset/gt-4622.png"
+)
 fname, file_extension = os.path.splitext(filename)
 
 height = 0
@@ -17,20 +16,18 @@ width = 0
 
 i = []
 if file_extension.lower() == ".raw":
-    f = open(filename,"r")
-    i = np.fromfile(f, dtype='uint16', sep="")
-    f.close()
-
+    with open(filename,"r") as f:
+        i = np.fromfile(f, dtype='uint16', sep="")
     size = i.shape[0]
-    if (size / 1280 == 720):
-        height = 720
-        width = 1280
-    elif (size / 848 == 480):
-        height = 480
-        width = 848
-    elif (size / 640 == 480):
+    if size == 307200:
         height = 480
         width = 640
+    elif size == 407040:
+        height = 480
+        width = 848
+    elif size == 921600:
+        height = 720
+        width = 1280
     else:
         print("Unknown dimentions")
 if file_extension.lower() == ".png":
@@ -68,32 +65,30 @@ def click_and_crop(event, x, y, flags, param):
 
     xx = x
     yy = y
-        
+
     if event == cv.EVENT_LBUTTONDOWN:
         return
-	# check to see if the left mouse button was released
     elif event == cv.EVENT_LBUTTONUP:
         if (x0 == 0):
             x0 = x
             y0 = y
-        else:
-            if (x1 == 0):
-                x1 = x
-                y1 = y
+        elif (x1 == 0):
+            x1 = x
+            y1 = y
 
-                mx = min(x0, x1)
-                Mx = max(x0, x1)
-                my = min(y0, y1)
-                My = max(y0, y1)
-            else:
-                x0 = x
-                y0 = y
-                x1 = 0
-                y1 = 0
-                mx = 0
-                Mx = 0
-                my = 0
-                My = 0
+            mx = min(x0, x1)
+            Mx = max(x0, x1)
+            my = min(y0, y1)
+            My = max(y0, y1)
+        else:
+            x0 = x
+            y0 = y
+            x1 = 0
+            y1 = 0
+            mx = 0
+            Mx = 0
+            my = 0
+            My = 0
 	# record the ending (x, y) coordinates and indicate that
         return
 
@@ -115,7 +110,16 @@ colorized = cv.applyColorMap(i8, cv.COLORMAP_JET)
 colorized[i8 == int(m)] = 0
 
 font = cv.FONT_HERSHEY_COMPLEX_SMALL
-colorized = cv.putText(colorized, str(m) + " .. " + str(M), (20,50), font, 1, (255, 255, 255), 2, cv.LINE_AA)
+colorized = cv.putText(
+    colorized,
+    f"{str(m)} .. {str(M)}",
+    (20, 50),
+    font,
+    1,
+    (255, 255, 255),
+    2,
+    cv.LINE_AA,
+)
 
 while cv.getWindowProperty('image', 0) >= 0:
     im = colorized.copy()
@@ -197,7 +201,7 @@ while cv.getWindowProperty('image', 0) >= 0:
 
         rmse_mm = rmse * 1000
         im = cv.putText(im, "%.2f mm" % rmse_mm, (mx + 2,my + 16), font, 1, (255, 255, 255), 2, cv.LINE_AA)
-    
+
     # display the image and wait for a keypress
     cv.imshow("image", im)
     key = cv.waitKey(100) & 0xFF

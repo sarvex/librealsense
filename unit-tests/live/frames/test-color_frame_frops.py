@@ -36,10 +36,10 @@ lrs_fq = LRSFrameQueueManager()
 lrs_fq.register_callback(cb)
 
 pipe = rs.pipeline()
-test.start("Testing color frame drops on " + product_line + " device ")
+test.start(f"Testing color frame drops on {product_line} device ")
 for i in range(iterations):
     lrs_fq.start()
-    print ('iteration #{}'.format(i))
+    print(f'iteration #{i}')
     hw_ts = []
     print ('\tStart stream'.format(i))
     cfg = rs.config()
@@ -55,7 +55,9 @@ for i in range(iterations):
     for idx, delta in enumerate(deltas_ms, 1):
         if delta > (expected_delta * 1.95):
             count_drops = True
-            print ('\tFound drop #{} actual delta {} vs expected delta: {}'.format(idx, delta, expected_delta))
+            print(
+                f'\tFound drop #{idx} actual delta {delta} vs expected delta: {expected_delta}'
+            )
     lrs_fq.stop()
 
     test.check(not count_drops)

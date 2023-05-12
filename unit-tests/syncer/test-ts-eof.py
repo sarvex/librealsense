@@ -94,8 +94,7 @@ sw.reset()
 #     [Depth/0 #3 @50.000000]    <--- the frame that was "lost"
 #
 from rspy import repo
-rs_convert = repo.find_built_exe( 'tools/convert', 'rs-convert' )
-if rs_convert:
+if rs_convert := repo.find_built_exe('tools/convert', 'rs-convert'):
     import subprocess
     subprocess.run( [rs_convert, '-i', filename, '-T'],
                     stdout=None,

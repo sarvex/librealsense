@@ -85,7 +85,7 @@ def connect( spec = None ):
 
     result = hub.connectFromSpec( spec )
     if result != brainstem.result.Result.NO_ERROR:
-        raise RuntimeError( "failed to connect to acroname (result={})".format( result ))
+        raise RuntimeError(f"failed to connect to acroname (result={result})")
     elif len(specs) > 1:
         log.d( 'connected to', spec )
 
@@ -107,7 +107,7 @@ def find_all_hubs():
             continue
         for port in ports:
             # ignore everything inside existing hubs - we only want the top-level
-            if dev_port.startswith( port + '.' ):
+            if dev_port.startswith(f'{port}.'):
                 break
         else:
             ports.add( dev_port )
@@ -140,11 +140,7 @@ def ports():
     """
     :return: a list of all ports currently occupied (and enabled)
     """
-    occupied_ports = []
-    for port in all_ports():
-        if port_power( port ) > 0.0:
-            occupied_ports.append( port )
-    return occupied_ports
+    return [port for port in all_ports() if port_power( port ) > 0.0]
 
 
 def is_port_enabled( port ):
@@ -162,9 +158,7 @@ def port_state( port ):
         return "Disabled"
     if status.value == 11:
         return "Disconnected"
-    if status.value > 100:
-        return "OK"
-    return "Unknown Error ({})".format( status.value )
+    return "OK" if status.value > 100 else f"Unknown Error ({status.value})"
 
 
 def enable_ports( ports = None, disable_other_ports = False, sleep_on_change = 0 ):

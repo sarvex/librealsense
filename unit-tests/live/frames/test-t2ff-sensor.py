@@ -50,7 +50,7 @@ time.sleep(3)
 
 
 #####################################################################################################
-test.start("Testing device creation time on " + platform.system() + " OS")
+test.start(f"Testing device creation time on {platform.system()} OS")
 device_creation_stopwatch = Stopwatch()
 dev = test.find_first_device_or_exit()
 device_creation_time = device_creation_stopwatch.get_elapsed()
@@ -71,7 +71,7 @@ elif product_line == "L500":
 else:
     log.f( "This test support only D400 + L515 devices" )
 
-    
+
 ds = dev.first_depth_sensor()
 cs = dev.first_color_sensor()
 
@@ -87,7 +87,9 @@ cp = next(p for p in
 
 
 #####################################################################################################
-test.start("Testing first depth frame delay on " + product_line + " device - "+ platform.system() + " OS")
+test.start(
+    f"Testing first depth frame delay on {product_line} device - {platform.system()} OS"
+)
 first_depth_frame_delay = time_to_first_frame(ds, dp, max_delay_for_depth_frame)
 print("Time until first depth frame is: {:.3f} [sec] max allowed is: {:.1f} [sec] ".format(first_depth_frame_delay, max_delay_for_depth_frame))
 test.check(first_depth_frame_delay < max_delay_for_depth_frame)
@@ -95,7 +97,9 @@ test.finish()
 
 
 #####################################################################################################
-test.start("Testing first color frame delay on " + product_line + " device - "+ platform.system() + " OS")
+test.start(
+    f"Testing first color frame delay on {product_line} device - {platform.system()} OS"
+)
 first_color_frame_delay = time_to_first_frame(cs, cp, max_delay_for_color_frame)
 print("Time until first color frame is: {:.3f} [sec] max allowed is: {:.1f} [sec] ".format(first_color_frame_delay, max_delay_for_color_frame))
 test.check(first_color_frame_delay < max_delay_for_color_frame)

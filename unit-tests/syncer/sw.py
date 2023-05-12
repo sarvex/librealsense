@@ -87,10 +87,9 @@ def init( syncer_matcher = rs.matchers.default ):
     #
     # We don't want to lose any frames so use a big queue size (default is 1)
     global syncer
-    if syncer_matcher is not None:
-        syncer = rs.syncer( 100 )  
-    else:
-        syncer = rs.frame_queue( 100 )
+    syncer = (
+        rs.syncer(100) if syncer_matcher is not None else rs.frame_queue(100)
+    )
     #
     global playback_status
     playback_status = None
@@ -136,10 +135,7 @@ def playback( filename, use_syncer = True ):
     color_profile = next( p for p in color_sensor.profiles if p.stream_type() == rs.stream.color )
     #
     global syncer
-    if use_syncer:
-        syncer = rs.syncer( 100 )  # We don't want to lose any frames so uses a big queue size (default is 1)
-    else:
-        syncer = rs.frame_queue( 100 )
+    syncer = rs.syncer( 100 ) if use_syncer else rs.frame_queue( 100 )
     #
     global playback_status
     playback_status = rs.playback_status.unknown
@@ -250,15 +246,12 @@ def expect( depth_frame = None, color_frame = None, nothing_else = False ):
 
     fs = rs.composite_frame( f )
 
-    if fs:
-        depth = fs.get_depth_frame()
-    else:
-        depth = rs.depth_frame( f )
+    depth = fs.get_depth_frame() if fs else rs.depth_frame( f )
     test.info( "actual depth", depth )
     test.check_equal( depth_frame is None, not depth )
     if depth_frame is not None and depth:
         test.check_equal( depth.get_frame_number(), depth_frame )
-    
+
     if fs:
         color = fs.get_color_frame()
     elif not depth:

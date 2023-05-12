@@ -86,7 +86,7 @@ def find_image_or_exit( product_name, fw_version_regex = r'(\d+\.){3}(\d+)' ):
     pattern = re.compile( r'^Intel RealSense (((\S+?)(\d+))(\S*))' )
     match = pattern.search( product_name )
     if not match:
-        raise RuntimeError( "Failed to parse product name '" + product_name + "'" )
+        raise RuntimeError(f"Failed to parse product name '{product_name}'")
 
     # For a product 'PR567abc', we want to search, in order, these combinations:
     #     PR567abc
@@ -100,9 +100,9 @@ def find_image_or_exit( product_name, fw_version_regex = r'(\d+\.){3}(\d+)' ):
     suffix = 5             # the suffix
     for j in range(1, 3):  # with suffix, then without
         start_index, end_index = match.span(j)
-        for i in range(0, len(match.group(suffix))):
+        for i in range(0, len(match[suffix])):
             pn = product_name[start_index:end_index-i]
-            image_name = '(^|/)' + pn + i*'X' + "_FW_Image-" + fw_version_regex + r'\.bin$'
+            image_name = f'(^|/){pn}' + i*'X' + "_FW_Image-" + fw_version_regex + r'\.bin$'
             for image in file.find(repo.root, image_name):
                 return os.path.join( repo.root, image )
         suffix -= 1

@@ -8,10 +8,7 @@ from rspy import log
 # get os and directories for future use
 # NOTE: WSL will read as 'Linux' but the build is Windows-based!
 system = platform.system()
-if system == 'Linux'  and  "microsoft" not in platform.uname()[3].lower():
-    linux = True
-else:
-    linux = False
+linux = system == 'Linux' and "microsoft" not in platform.uname()[3].lower()
 
 
 def inside_dir( root ):
@@ -21,7 +18,7 @@ def inside_dir( root ):
     for (path,subdirs,leafs) in os.walk( root ):
         for leaf in leafs:
             # We have to stick to Unix conventions because CMake on Windows is fubar...
-            yield os.path.relpath( path + '/' + leaf, root ).replace( '\\', '/' )
+            yield os.path.relpath(f'{path}/{leaf}', root).replace('\\', '/')
 
 
 def is_inside( file, directory ):
@@ -78,8 +75,7 @@ def _grep( pattern, lines, context ):
     matches = 0
     for line in lines:
         index = index + 1
-        match = pattern.search( line )
-        if match:
+        if match := pattern.search(line):
             context['index'] = index
             context['line']  = line
             context['match'] = match
@@ -92,12 +88,11 @@ def _grep( pattern, lines, context ):
 
 def grep( expr, *args ):
     pattern = re.compile( expr )
-    context = dict()
+    context = {}
     for filename in args:
         context['filename'] = filename
         with open( filename, errors = 'ignore' ) as file:
-            for line in _grep( pattern, remove_newlines( file ), context ):
-                yield line
+            yield from _grep( pattern, remove_newlines( file ), context )
 
 def cat( filename ):
     with open( filename, errors = 'ignore' ) as file:
@@ -112,13 +107,13 @@ def split_comments( filename, comment_delim_regex = '#' ):
         'line # comment at EOL' yields ('line', 'comment at EOL')
         '# comment line  '      yields ('', 'comment line')
     """
-    context = dict()
+    context = {}
     pattern = re.compile( r'^(.*?)(?:\s*' + comment_delim_regex + r'\s*(.*?)\s*)?$' )  # to end-of-line
     with open( filename, errors = 'ignore' ) as file:
         for line in remove_newlines( file ):
             match = pattern.search( line )
-            line_without_comment = match.group(1)
-            comment = match.group(2)                 # can be None
+            line_without_comment = match[1]
+            comment = match[2]
             yield (line_without_comment, comment)
 
 

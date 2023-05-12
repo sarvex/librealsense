@@ -49,13 +49,11 @@ if _have_color:
         if color:
             s = color + s + reset
         _write( s )
-        clear_to_eol = len(_progress) > 0  and  end  and  end[-1] == '\n'
-        if clear_to_eol:
+        if clear_to_eol := len(_progress) > 0 and end and end[-1] == '\n':
             sys.stdout.write( clear_eol + end )
             progress( *_progress )
-        else:
-            if end:
-                sys.stdout.write( end )
+        elif end:
+            sys.stdout.write( end )
     def progress(*args):
         global _progress
         sys.stdout.flush()
@@ -98,7 +96,8 @@ def verbose_on():
     global v, _verbose_on
     def v(*args):
         global gray, reset
-        out( gray + '-V-', *args, reset )
+        out(f'{gray}-V-', *args, reset)
+
     _verbose_on = True
 def is_verbose_on():
     global _verbose_on
@@ -114,8 +113,9 @@ def debug_on():
     global d, _debug_on, _debug_indent
     def d( *args ):
         global gray
-        out( *args, line_prefix = "-D- " + _debug_indent, color = gray )
+        out(*args, line_prefix=f"-D- {_debug_indent}", color = gray)
         return True
+
     _debug_on = True
 def is_debug_on():
     global _debug_on
@@ -144,7 +144,7 @@ def f( *args ):
 _n_errors = 0
 def e( *args ):
     global red, reset
-    out( *args, line_prefix = red + '-E-' + reset + ' ' )
+    out(*args, line_prefix=f'{red}-E-{reset} ')
     global _n_errors
     _n_errors = _n_errors + 1
 
@@ -161,7 +161,7 @@ def reset_errors():
 _n_warnings = 0
 def w(*args):
     global red, reset
-    out( *args, line_prefix = yellow + '-W-' + reset + ' ' )
+    out(*args, line_prefix=f'{yellow}-W-{reset} ')
     global _n_warnings
     _n_warnings = _n_warnings + 1
 

@@ -38,7 +38,7 @@ def record_with_pause( file_name, iterations, pause_delay=0, resume_delay=0 ):
     device = pipeline_record_profile.get_device()
     device_recorder = device.as_recorder()
 
-    for i in range( iterations ):
+    for _ in range( iterations ):
         if pause_delay > 0:
             log.d('Sleeping for', pause_delay, '[sec]')
             time.sleep( pause_delay )

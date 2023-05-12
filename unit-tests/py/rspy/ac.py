@@ -28,6 +28,9 @@ def trim_irrelevant_statuses(irrelevant_statuses):
 # Waits for calibration to end by checking last status call-back
 def wait_for_calibration():
     global status_list
-    while status_list[-1] != rs.calibration_status.successful and status_list[-1] != rs.calibration_status.failed:
+    while status_list[-1] not in [
+        rs.calibration_status.successful,
+        rs.calibration_status.failed,
+    ]:
         sleep(1)
     return status_list[-1]

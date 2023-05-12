@@ -113,35 +113,34 @@ def calculate_boundingbox_points(point_cloud, calibration_info_devices, depth_th
 	"""
 	# Calculate the dimensions of the filtered and summed up point cloud
 	# Some dirty array manipulations are gonna follow
-	if point_cloud.shape[1] > 500:
-		# Get the bounding box in 2D using the X and Y coordinates
-		coord = np.c_[point_cloud[0,:], point_cloud[1,:]].astype('float32')
-		min_area_rectangle = cv2.minAreaRect(coord)
-		bounding_box_world_2d = cv2.boxPoints(min_area_rectangle)
-		# Caculate the height of the pointcloud
-		height = max(point_cloud[2,:]) - min(point_cloud[2,:]) + depth_threshold
-
-		# Get the upper and lower bounding box corner points in 3D
-		height_array = np.array([[-height], [-height], [-height], [-height], [0], [0], [0], [0]])
-		bounding_box_world_3d = np.column_stack((np.row_stack((bounding_box_world_2d,bounding_box_world_2d)), height_array))
-
-		# Get the bounding box points in the image coordinates
-		bounding_box_points_color_image={}
-		for (device, calibration_info) in calibration_info_devices.items():
-			# Transform the bounding box corner points to the device coordinates
-			bounding_box_device_3d = calibration_info[0].inverse().apply_transformation(bounding_box_world_3d.transpose())
-			
-			# Obtain the image coordinates in the color imager using the bounding box 3D corner points in the device coordinates
-			color_pixel=[]
-			bounding_box_device_3d = bounding_box_device_3d.transpose().tolist()
-			for bounding_box_point in bounding_box_device_3d: 
-				bounding_box_color_image_point = rs.rs2_transform_point_to_point(calibration_info[2], bounding_box_point)			
-				color_pixel.append(rs.rs2_project_point_to_pixel(calibration_info[1][rs.stream.color], bounding_box_color_image_point))
-			
-			bounding_box_points_color_image[device] = np.row_stack( color_pixel )
-		return bounding_box_points_color_image, min_area_rectangle[1][0], min_area_rectangle[1][1], height
-	else : 
+	if point_cloud.shape[1] <= 500:
 		return {},0,0,0
+	# Get the bounding box in 2D using the X and Y coordinates
+	coord = np.c_[point_cloud[0,:], point_cloud[1,:]].astype('float32')
+	min_area_rectangle = cv2.minAreaRect(coord)
+	bounding_box_world_2d = cv2.boxPoints(min_area_rectangle)
+	# Caculate the height of the pointcloud
+	height = max(point_cloud[2,:]) - min(point_cloud[2,:]) + depth_threshold
+
+	# Get the upper and lower bounding box corner points in 3D
+	height_array = np.array([[-height], [-height], [-height], [-height], [0], [0], [0], [0]])
+	bounding_box_world_3d = np.column_stack((np.row_stack((bounding_box_world_2d,bounding_box_world_2d)), height_array))
+
+	# Get the bounding box points in the image coordinates
+	bounding_box_points_color_image={}
+	for (device, calibration_info) in calibration_info_devices.items():
+		# Transform the bounding box corner points to the device coordinates
+		bounding_box_device_3d = calibration_info[0].inverse().apply_transformation(bounding_box_world_3d.transpose())
+
+		# Obtain the image coordinates in the color imager using the bounding box 3D corner points in the device coordinates
+		color_pixel=[]
+		bounding_box_device_3d = bounding_box_device_3d.transpose().tolist()
+		for bounding_box_point in bounding_box_device_3d: 
+			bounding_box_color_image_point = rs.rs2_transform_point_to_point(calibration_info[2], bounding_box_point)			
+			color_pixel.append(rs.rs2_project_point_to_pixel(calibration_info[1][rs.stream.color], bounding_box_color_image_point))
+
+		bounding_box_points_color_image[device] = np.row_stack( color_pixel )
+	return bounding_box_points_color_image, min_area_rectangle[1][0], min_area_rectangle[1][1], height
 
 
 
@@ -182,7 +181,7 @@ def visualise_measurements(frames_devices, bounding_box_points_devices, length, 
 		if (length != 0 and width !=0 and height != 0):
 			bounding_box_points_device_upper = bounding_box_points_devices[device][0:4,:]
 			bounding_box_points_device_lower = bounding_box_points_devices[device][4:8,:]
-			box_info = "Length, Width, Height (mm): " + str(int(length*1000)) + ", " + str(int(width*1000)) + ", " + str(int(height*1000))
+			box_info = f"Length, Width, Height (mm): {int(length * 1000)}, {int(width * 1000)}, {int(height * 1000)}"
 
 			# Draw the box as an overlay on the color image		
 			bounding_box_points_device_upper = tuple(map(tuple,bounding_box_points_device_upper.astype(int)))
@@ -192,13 +191,13 @@ def visualise_measurements(frames_devices, bounding_box_points_devices, length, 
 			bounding_box_points_device_lower = tuple(map(tuple,bounding_box_points_device_lower.astype(int)))
 			for i in range(len(bounding_box_points_device_upper)):	
 				cv2.line(color_image, bounding_box_points_device_lower[i], bounding_box_points_device_lower[(i+1)%4], (0,255,0), 1)
-				
+
 			cv2.line(color_image, bounding_box_points_device_upper[0], bounding_box_points_device_lower[0], (0,255,0), 1)
 			cv2.line(color_image, bounding_box_points_device_upper[1], bounding_box_points_device_lower[1], (0,255,0), 1)
 			cv2.line(color_image, bounding_box_points_device_upper[2], bounding_box_points_device_lower[2], (0,255,0), 1)
 			cv2.line(color_image, bounding_box_points_device_upper[3], bounding_box_points_device_lower[3], (0,255,0), 1)
 			cv2.putText(color_image, box_info, (50,50), cv2.FONT_HERSHEY_PLAIN, 2, (0,255,0) )
-			
+
 		# Visualise the results
-		cv2.imshow('Color image from RealSense Device Nr: ' + device, color_image)
+		cv2.imshow(f'Color image from RealSense Device Nr: {device}', color_image)
 		cv2.waitKey(1)

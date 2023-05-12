@@ -70,11 +70,9 @@ pipeline_wrapper = rs.pipeline_wrapper(pipeline)
 pipeline_profile = config.resolve(pipeline_wrapper)
 device = pipeline_profile.get_device()
 
-found_rgb = False
-for s in device.sensors:
-    if s.get_info(rs.camera_info.name) == 'RGB Camera':
-        found_rgb = True
-        break
+found_rgb = any(
+    s.get_info(rs.camera_info.name) == 'RGB Camera' for s in device.sensors
+)
 if not found_rgb:
     print("The demo requires Depth camera with Color sensor")
     exit(0)

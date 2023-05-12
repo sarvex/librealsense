@@ -15,10 +15,7 @@ pipeline.start(config)
 channels = 2
 cropped_w, cropped_h = 480, 480
 
-test_model_name = ""
-if (len(sys.argv) > 1):
-    test_model_name = str(sys.argv[1])
-
+test_model_name = str(sys.argv[1]) if (len(sys.argv) > 1) else ""
 t1 = time.perf_counter()
 model = keras.models.load_model(test_model_name)
 t2 = time.perf_counter()
@@ -95,7 +92,16 @@ def convert_image(i):
     font = cv2.FONT_HERSHEY_SIMPLEX
     m = float("{:.2f}".format(m))
     M = float("{:.2f}".format(M))
-    colorized = cv2.putText(colorized, str(m) + " .. " + str(M) + "[m]", (20, 50), font, 1, (255, 255, 255), 2, cv2.LINE_AA)
+    colorized = cv2.putText(
+        colorized,
+        f"{m} .. {M}[m]",
+        (20, 50),
+        font,
+        1,
+        (255, 255, 255),
+        2,
+        cv2.LINE_AA,
+    )
     return colorized
 
 

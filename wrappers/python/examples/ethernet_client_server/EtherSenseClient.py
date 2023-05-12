@@ -10,7 +10,7 @@ import cv2
 
 
 print('Number of arguments:', len(sys.argv), 'arguments.')
-print('Argument List:', str(sys.argv))
+print('Argument List:', sys.argv)
 mc_ip_address = '224.0.0.1'
 local_ip_address = '192.168.0.1'
 port = 1024
@@ -28,8 +28,8 @@ class ImageClient(asyncore.dispatcher):
         self.port = source[1]
         self.buffer = bytearray()
         self.windowName = self.port
-        # open cv window which is unique to the port 
-        cv2.namedWindow("window"+str(self.windowName))
+        # open cv window which is unique to the port
+        cv2.namedWindow(f"window{str(self.windowName)}")
         self.remainingBytes = 0
         self.frame_id = 0
        
@@ -52,9 +52,9 @@ class ImageClient(asyncore.dispatcher):
     def handle_frame(self):
         # convert the frame from string to numerical data
         imdata = pickle.loads(self.buffer)
-        bigDepth = cv2.resize(imdata, (0,0), fx=2, fy=2, interpolation=cv2.INTER_NEAREST) 
+        bigDepth = cv2.resize(imdata, (0,0), fx=2, fy=2, interpolation=cv2.INTER_NEAREST)
         cv2.putText(bigDepth, str(self.timestamp), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (65536), 2, cv2.LINE_AA)
-        cv2.imshow("window"+str(self.windowName), bigDepth)
+        cv2.imshow(f"window{str(self.windowName)}", bigDepth)
         cv2.waitKey(1)
         self.buffer = bytearray()
         self.frame_id += 1
@@ -87,7 +87,7 @@ class EtherSenseClient(asyncore.dispatcher):
         #print(self.recv(10))
         if pair is not None:
             sock, addr = pair
-            print ('Incoming connection from %s' % repr(addr))
+            print(f'Incoming connection from {repr(addr)}')
             # when a connection is attempted, delegate image receival to the ImageClient 
             handler = ImageClient(sock, addr)
 
@@ -98,15 +98,15 @@ def multi_cast_message(ip_address, port, message):
     connections = {}
     try:
         # Send data to the multicast group
-        print('sending "%s"' % message + str(multicast_group))
+        print(f'sending "{message}"{multicast_group}')
         sent = sock.sendto(message.encode(), multicast_group)
-   
+
         # defer waiting for a response using Asyncore
         client = EtherSenseClient()
         asyncore.loop()
 
-        # Look for responses from all recipients
-        
+            # Look for responses from all recipients
+
     except socket.timeout:
         print('timed out, no more responses')
     finally:

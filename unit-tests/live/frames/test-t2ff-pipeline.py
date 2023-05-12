@@ -45,7 +45,9 @@ def time_to_first_frame(config):
 
 
 ################################################################################################
-test.start("Testing pipeline first depth frame delay on " + product_line + " device - " + platform.system() + " OS")
+test.start(
+    f"Testing pipeline first depth frame delay on {product_line} device - {platform.system()} OS"
+)
 depth_cfg = rs.config()
 depth_cfg.enable_stream(rs.stream.depth, rs.format.z16, 30)
 frame_delay = time_to_first_frame(depth_cfg)
@@ -55,7 +57,9 @@ test.finish()
 
 
 ################################################################################################
-test.start("Testing pipeline first color frame delay on " + product_line + " device - " + platform.system() + " OS")
+test.start(
+    f"Testing pipeline first color frame delay on {product_line} device - {platform.system()} OS"
+)
 color_cfg = rs.config()
 color_cfg.enable_stream(rs.stream.color, rs.format.rgb8, 30)
 frame_delay = time_to_first_frame(color_cfg)

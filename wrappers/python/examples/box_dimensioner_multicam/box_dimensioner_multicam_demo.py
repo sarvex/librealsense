@@ -36,7 +36,7 @@ def run_demo():
 	frame_rate = 15  # fps
 
 	dispose_frames_for_stablisation = 30  # frames
-	
+
 	chessboard_width = 6 # squares
 	chessboard_height = 9 	# squares
 	square_size = 0.0253 # meters
@@ -56,9 +56,9 @@ def run_demo():
 		# Use the device manager class to enable the devices and get the frames
 		device_manager = DeviceManager(rs.context(), rs_config, L515_rs_config)
 		device_manager.enable_all_devices()
-		
+
 		# Allow some frames for the auto-exposure controller to stablise
-		for frame in range(dispose_frames_for_stablisation):
+		for _ in range(dispose_frames_for_stablisation):
 			frames = device_manager.poll_frames()
 
 		assert( len(device_manager._available_devices) > 0 )
@@ -70,10 +70,10 @@ def run_demo():
 		"""
 		# Get the intrinsics of the realsense device 
 		intrinsics_devices = device_manager.get_device_intrinsics(frames)
-		
+
                 # Set the chessboard parameters for calibration 
 		chessboard_params = [chessboard_height, chessboard_width, square_size] 
-		
+
 		# Estimate the pose of the chessboard in the world coordinate using the Kabsch Method
 		calibrated_device_count = 0
 		while calibrated_device_count < len(device_manager._available_devices):
@@ -145,7 +145,7 @@ def run_demo():
 
 	except KeyboardInterrupt:
 		print("The program was interupted by the user. Closing the program...")
-	
+
 	finally:
 		device_manager.disable_streams()
 		cv2.destroyAllWindows()

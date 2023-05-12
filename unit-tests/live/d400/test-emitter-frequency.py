@@ -28,7 +28,7 @@ if "D455" in device_name:
 elif "D457" in device_name:
     test.check_equal(depth_sensor.get_option(rs.option.emitter_frequency), EMITTER_FREQUENCY_91_KHZ)
 else:
-    test.fail("Unexpected device name found: " + device_name)
+    test.fail(f"Unexpected device name found: {device_name}")
 test.finish()
 
 ################################################################################################

@@ -53,7 +53,9 @@ while (not wait_frames_timer.has_expired()
     time.sleep(1)
 
 if wait_frames_timer.has_expired():
-    print(str(NUMBER_OF_FRAMES_BEFORE_CHECK) + " frames did not arrived at "+ str(MAX_TIME_TO_WAIT_FOR_FRAMES) + " seconds , abort...")
+    print(
+        f"{str(NUMBER_OF_FRAMES_BEFORE_CHECK)} frames did not arrived at {str(MAX_TIME_TO_WAIT_FOR_FRAMES)} seconds , abort..."
+    )
     test.fail()
 else:
     test.check(n_depth_frame >= NUMBER_OF_FRAMES_BEFORE_CHECK)
@@ -82,7 +84,9 @@ while (not wait_frames_timer.has_expired()
     time.sleep(1)
 
 if wait_frames_timer.has_expired():
-    print(str(NUMBER_OF_FRAMES_BEFORE_CHECK) + " frames did not arrived at "+ str(MAX_TIME_TO_WAIT_FOR_FRAMES) + " seconds , abort...")
+    print(
+        f"{str(NUMBER_OF_FRAMES_BEFORE_CHECK)} frames did not arrived at {str(MAX_TIME_TO_WAIT_FOR_FRAMES)} seconds , abort..."
+    )
     test.fail()
 else:
     test.check(n_depth_frame != 0)

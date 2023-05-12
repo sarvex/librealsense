@@ -56,7 +56,7 @@ while True:
 
     # Convert images to numpy arrays
     color_image = np.asanyarray(color_frame.get_data())
-    scaled_size = (int(W), int(H))
+    scaled_size = W, H
     # expand image dimensions to have shape: [1, None, None, 3]
     # i.e. a single-column array, where each item in the column has the pixel RGB value
     image_expanded = np.expand_dims(color_image, axis=0)
@@ -107,7 +107,7 @@ while True:
             height = (My - my)  # add next to rectangle print of height using cv library
             height = float("{:.2f}".format(height))
             print("[INFO] object height is: ", height, "[m]")
-            height_txt = str(height) + "[m]"
+            height_txt = f"{height}[m]"
 
             # Write some Text
             font = cv2.FONT_HERSHEY_SIMPLEX

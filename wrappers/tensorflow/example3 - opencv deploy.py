@@ -38,7 +38,7 @@ while True:
     print("[INFO] found a valid depth frame")
     color_image = np.asanyarray(color_frame.get_data())
 
-    scaled_size = (int(W), int(H))
+    scaled_size = W, H
     net.setInput(cv2.dnn.blobFromImage(color_image, size=scaled_size, swapRB=True, crop=False))
     detections = net.forward()
 
@@ -78,7 +78,7 @@ while True:
             height = (My - my) # add next to rectangle print of height using cv library
             height = float("{:.2f}".format(height))
             print("[INFO] object height is: ", height, "[m]")
-            height_txt = str(height)+"[m]"
+            height_txt = f"{height}[m]"
 
             # Write some Text
             font = cv2.FONT_HERSHEY_SIMPLEX

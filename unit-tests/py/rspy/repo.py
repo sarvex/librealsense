@@ -47,10 +47,8 @@ def find_pyrs_dir():
     """
     :return: the directory (absolute) in which pyrealsense2 lives, or None if unknown/not found
     """
-    pyrs = find_pyrs()
-    if pyrs:
-        pyrs_dir = os.path.dirname( pyrs )
-        return pyrs_dir
+    if pyrs := find_pyrs():
+        return os.path.dirname( pyrs )
 
 
 def pretty_fw_version( fw_version_as_string ):
@@ -69,9 +67,9 @@ def compare_fw_versions( v1, v2 ):
     v1_list = v1.split( '.' )
     v2_list = v2.split( '.' )
     if len(v1_list) != 4:
-        raise RuntimeError( "FW version (left) '" + v1 + "' is invalid" )
+        raise RuntimeError(f"FW version (left) '{v1}' is invalid")
     if len(v2_list) != 4:
-        raise RuntimeError( "FW version (right) '" + v2 + "' is invalid" )
+        raise RuntimeError(f"FW version (right) '{v2}' is invalid")
     for n1, n2 in zip( v1_list, v2_list ):
         if int(n1) > int(n2):
             return 1
@@ -99,7 +97,7 @@ def find_built_exe( source, name ):
         # in the path
         import sys
         for p in sys.path:
-            exe = os.path.join( p, name + '.exe' )
+            exe = os.path.join(p, f'{name}.exe')
             if os.path.isfile( exe ):
                 break
         else:

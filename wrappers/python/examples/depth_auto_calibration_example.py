@@ -57,7 +57,10 @@ def main(arguments=None):
     if device.supports(rs.camera_info.product_line):
         device_product_line = str(device.get_info(rs.camera_info.product_line))
         if device_product_line != 'D400':
-            print(f'The example is intended for RealSense D400 Depth cameras, and is not', end =" ")
+            print(
+                'The example is intended for RealSense D400 Depth cameras, and is not',
+                end=" ",
+            )
             print(f'applicable with {cam_name}')
             sys.exit(1)
     # 2. The routine assumes USB3 connection type
@@ -190,11 +193,7 @@ def run_tare_calibration(accuracy, scan, gt, target_size):
     args = json.dumps(data)
 
     print('Starting Tare calibration...')
-    if gt == 'auto':
-        target_z = calculate_target_z(target_size)
-    else:
-        target_z = float(gt)
-
+    target_z = calculate_target_z(target_size) if gt == 'auto' else float(gt)
     cfg = rs.config()
     cfg.enable_stream(rs.stream.depth, 256, 144, rs.format.z16, 90)
     pipe = rs.pipeline(ctx)

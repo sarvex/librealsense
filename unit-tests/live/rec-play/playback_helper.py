@@ -51,18 +51,22 @@ class PlaybackStatusVerifier:
         log.d('timeout set to', timeout, '[sec]')
         while not wait_for_event_timer.has_expired():
             if required_status == self._current_status:
-                log.d('Required status "' + str(required_status) + '" detected!')
+                log.d(f'Required status "{str(required_status)}" detected!')
                 required_status_detected = True
                 break
             time.sleep( sample_interval )
 
-        test.check(required_status_detected, description='Check failed, Timeout on waiting for ' + str(required_status) )
+        test.check(
+            required_status_detected,
+            description=f'Check failed, Timeout on waiting for {str(required_status)}',
+        )
 
         '''If the status changes too fast let say , Stopped -> Playing --> Stopped  within 1 sample time we can miss 
         it. So if we already failed on the status we add a check to indicate it in the test result that our sample 
         interval may be too long and we may have missed the required status '''
         if not required_status_detected:
-            test.check( status_changes_cnt + 1 < self._status_changes_cnt,
-                    'Multiple status changes detected, expecting a single change, got '+ str( self._status_changes_cnt - status_changes_cnt ) +
-                        ' changes, consider lowering the sample interval' )
+            test.check(
+                status_changes_cnt + 1 < self._status_changes_cnt,
+                f'Multiple status changes detected, expecting a single change, got {str(self._status_changes_cnt - status_changes_cnt)} changes, consider lowering the sample interval',
+            )
 

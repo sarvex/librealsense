@@ -248,14 +248,14 @@ try:
             disp_color = cv2.applyColorMap(cv2.convertScaleAbs(disp_vis,1), cv2.COLORMAP_JET)
             color_image = cv2.cvtColor(center_undistorted["left"][:,max_disp:], cv2.COLOR_GRAY2RGB)
 
-            if mode == "stack":
-                cv2.imshow(WINDOW_TITLE, np.hstack((color_image, disp_color)))
             if mode == "overlay":
                 ind = disparity >= min_disp
                 color_image[ind, 0] = disp_color[ind, 0]
                 color_image[ind, 1] = disp_color[ind, 1]
                 color_image[ind, 2] = disp_color[ind, 2]
                 cv2.imshow(WINDOW_TITLE, color_image)
+            elif mode == "stack":
+                cv2.imshow(WINDOW_TITLE, np.hstack((color_image, disp_color)))
         key = cv2.waitKey(1)
         if key == ord('s'): mode = "stack"
         if key == ord('o'): mode = "overlay"

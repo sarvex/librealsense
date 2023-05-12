@@ -22,13 +22,11 @@ cfg.enable_stream(rs.stream.pose)
 pipe.start(cfg)
 
 try:
-    while (True):
+    while True:
         # Wait for the next set of frames from the camera
         frames = pipe.wait_for_frames()
 
-        # Fetch pose frame
-        pose = frames.get_pose_frame()
-        if pose:
+        if pose := frames.get_pose_frame():
             # Print some of the pose data to the terminal
             data = pose.get_pose_data()
 
@@ -44,8 +42,8 @@ try:
             pitch =  -m.asin(2.0 * (x*z - w*y)) * 180.0 / m.pi;
             roll  =  m.atan2(2.0 * (w*x + y*z), w*w - x*x - y*y + z*z) * 180.0 / m.pi;
             yaw   =  m.atan2(2.0 * (w*z + x*y), w*w + x*x - y*y - z*z) * 180.0 / m.pi;
-            
-            print("Frame #{}".format(pose.frame_number))
+
+            print(f"Frame #{pose.frame_number}")
             print("RPY [deg]: Roll: {0:.7f}, Pitch: {1:.7f}, Yaw: {2:.7f}".format(roll, pitch, yaw))
 
 

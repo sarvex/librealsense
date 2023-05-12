@@ -33,7 +33,7 @@ def calculate_rmsd(points1, points2, validPoints=None):
 	assert(points1.shape == points2.shape)
 	N = points1.shape[1]
 
-	if validPoints == None:
+	if validPoints is None:
 		validPoints = [True]*N
 
 	assert(len(validPoints) == N)
@@ -44,10 +44,10 @@ def calculate_rmsd(points1, points2, validPoints=None):
 	N = points1.shape[1]
 
 	dist = points1 - points2
-	rmsd = 0
-	for col in range(N):
-		rmsd += np.matmul(dist[:,col].transpose(), dist[:,col]).flatten()[0]
-
+	rmsd = sum(
+		np.matmul(dist[:, col].transpose(), dist[:, col]).flatten()[0]
+		for col in range(N)
+	)
 	return np.sqrt(rmsd/N)
 
 
@@ -237,20 +237,22 @@ def get_boundary_corners_2D(points):
 		The values arranged as [minX, maxX, minY, maxY]
 	
 	"""
-	padding=0.05
-	if points.shape[0] == 3:
-		assert (len(points.shape)==2)
-		minPt_3d_x = np.amin(points[0,:])
-		maxPt_3d_x = np.amax(points[0,:])
-		minPt_3d_y = np.amin(points[1,:])
-		maxPt_3d_y = np.amax(points[1,:])
-
-		boudary = [minPt_3d_x-padding, maxPt_3d_x+padding, minPt_3d_y-padding, maxPt_3d_y+padding]
-
-	else:
+	if points.shape[0] != 3:
 		raise Exception("wrong dimension of points!")
 
-	return boudary
+	assert (len(points.shape)==2)
+	minPt_3d_x = np.amin(points[0,:])
+	maxPt_3d_x = np.amax(points[0,:])
+	minPt_3d_y = np.amin(points[1,:])
+	maxPt_3d_y = np.amax(points[1,:])
+
+	padding=0.05
+	return [
+		minPt_3d_x - padding,
+		maxPt_3d_x + padding,
+		minPt_3d_y - padding,
+		maxPt_3d_y + padding,
+	]
 
 
 

@@ -24,10 +24,7 @@ def get_allowed_drops():
     # On Linux, there is a known issue (RS5-7148) where up to 4 frame drops can occur
     # sequentially after setting control values during streaming... on Windows this
     # does not occur.
-    if platform.system() == 'Linux' and after_set_option:
-        return 4
-    # Our KPI is to prevent sequential frame drops, therefore single frame drop is allowed.
-    return 1
+    return 4 if platform.system() == 'Linux' and after_set_option else 1
 
 def set_new_value(sensor, option, value):
     global after_set_option
@@ -40,9 +37,7 @@ def set_new_value(sensor, option, value):
 def check_depth_frame_drops(frame):
     global previous_depth_frame_number
     allowed_drops = get_allowed_drops()
-    is_d400 = 0
-    if product_line == "D400":
-        is_d400 = 1
+    is_d400 = 1 if product_line == "D400" else 0
     test.check_frame_drops(frame, previous_depth_frame_number, allowed_drops, is_d400)
     previous_depth_frame_number = frame.get_frame_number()
 
@@ -95,15 +90,10 @@ depth_sensor.set_option( rs.option.visual_preset, int(rs.l500_visual_preset.max_
 
 options_to_ignore = [] 
 
-if product_line == "L500":
-    options_to_ignore = [rs.option.host_performance, rs.option.inter_cam_sync_mode]
-
-# ignore reasons:
-# visual_preset       --> frame drops are expected during visual_preset change
-# inter_cam_sync_mode --> frame drops are expected during inter_cam_sync_mode change
-# emitter_frequency   --> Not allowed to be set during streaming
 if product_line == "D400":
     options_to_ignore = [rs.option.visual_preset, rs.option.inter_cam_sync_mode, rs.option.emitter_frequency]
+elif product_line == "L500":
+    options_to_ignore = [rs.option.host_performance, rs.option.inter_cam_sync_mode]
 
 def test_option_changes(sensor):
     global options_to_ignore

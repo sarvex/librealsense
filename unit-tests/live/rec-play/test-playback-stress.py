@@ -21,7 +21,7 @@ def frame_callback( f ):
 ################################################################################################
 test.start( "Playback stress test" )
 
-log.d( "Playing back: " + file_name )
+log.d(f"Playing back: {file_name}")
 for i in range(250):
     try:
         log.d("Test - Starting iteration # " , i)

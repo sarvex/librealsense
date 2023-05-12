@@ -25,9 +25,7 @@ pipe = rs.pipeline()
 cfg = rs.config()
 profile = cfg.resolve(pipe)
 dev = profile.get_device()
-tm2 = dev.as_tm2()
-
-if(tm2):
+if tm2 := dev.as_tm2():
     # tm2.first_wheel_odometer()?
     pose_sensor = tm2.first_pose_sensor()
     wheel_odometer = pose_sensor.as_wheel_odometer()
@@ -36,9 +34,7 @@ if(tm2):
     f = open("calibration_odometry.json")
     chars = []
     for line in f:
-       for c in line:
-           chars.append(ord(c))  # char to uint8
-
+        chars.extend(ord(c) for c in line)
     # load/configure wheel odometer
     wheel_odometer.load_wheel_odometery_config(chars)
 
@@ -47,11 +43,10 @@ if(tm2):
     try:
         for _ in range(100):
             frames = pipe.wait_for_frames()
-            pose = frames.get_pose_frame()
-            if pose:
+            if pose := frames.get_pose_frame():
                 data = pose.get_pose_data()
-                print("Frame #{}".format(pose.frame_number))
-                print("Position: {}".format(data.translation))
+                print(f"Frame #{pose.frame_number}")
+                print(f"Position: {data.translation}")
 
                 # provide wheel odometry as vecocity measurement
                 wo_sensor_id = 0  # indexed from 0, match to order in calibration file

@@ -180,7 +180,7 @@ class DeviceManager:
         Enable all the Intel RealSense Devices which are connected to the PC
 
         """
-        print(str(len(self._available_devices)) + " devices have been found")
+        print(f"{len(self._available_devices)} devices have been found")
 
         for device_info in self._available_devices:
             self.enable_device(device_info, enable_ir_emitter)
@@ -281,9 +281,10 @@ class DeviceManager:
         device_intrinsics = {}
         for (dev_info, frameset) in frames.items():
             serial = dev_info[0]
-            device_intrinsics[serial] = {}
-            for key, value in frameset.items():
-                device_intrinsics[serial][key] = value.get_profile().as_video_stream_profile().get_intrinsics()
+            device_intrinsics[serial] = {
+                key: value.get_profile().as_video_stream_profile().get_intrinsics()
+                for key, value in frameset.items()
+            }
         return device_intrinsics
 
     def get_depth_to_color_extrinsics(self, frames):
@@ -325,6 +326,7 @@ class DeviceManager:
                                   |___/ 
 
 """
+
 if __name__ == "__main__":
     try:
         c = rs.config()
@@ -334,7 +336,7 @@ if __name__ == "__main__":
         c.enable_stream(rs.stream.color, 1280, 720, rs.format.rgb8, 6)
         device_manager = DeviceManager(rs.context(), c)
         device_manager.enable_all_devices()
-        for k in range(150):
+        for _ in range(150):
             frames = device_manager.poll_frames()
         device_manager.enable_emitter(True)
         device_extrinsics = device_manager.get_depth_to_color_extrinsics(frames)

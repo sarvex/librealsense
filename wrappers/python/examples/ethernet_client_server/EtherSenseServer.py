@@ -10,7 +10,7 @@ import cv2
 
 
 print('Number of arguments:', len(sys.argv), 'arguments.')
-print('Argument List:', str(sys.argv))
+print('Argument List:', sys.argv)
 mc_ip_address = '224.0.0.1'
 port = 1024
 chunk_size = 4096
@@ -20,15 +20,14 @@ def getDepthAndTimestamp(pipeline, depth_filter):
     frames = pipeline.wait_for_frames()
     # take owner ship of the frame for further processing
     frames.keep()
-    depth = frames.get_depth_frame()
-    if depth:
-	depth2 = depth_filter.process(depth)
-	# take owner ship of the frame for further processing
-	depth2.keep()
-	# represent the frame as a numpy array
-        depthData = depth2.as_frame().get_data()        
-	depthMat = np.asanyarray(depthData)
-	ts = frames.get_timestamp()
+    if depth := frames.get_depth_frame():
+        depth2 = depth_filter.process(depth)
+        # take owner ship of the frame for further processing
+        depth2.keep()
+        # represent the frame as a numpy array
+        depthData = depth2.as_frame().get_data()
+        depthMat = np.asanyarray(depthData)
+        ts = frames.get_timestamp()
         return depthMat, ts
     else:
         return None, None
@@ -113,7 +112,7 @@ class MulticastServer(asyncore.dispatcher):
 
     def handle_read(self):
         data, addr = self.socket.recvfrom(42)
-        print('Recived Multicast message %s bytes from %s' % (data, addr))
+        print(f'Recived Multicast message {data} bytes from {addr}')
 	# Once the server recives the multicast signal, open the frame server
         EtherSenseServer(addr)
         print(sys.stderr, data)
@@ -126,7 +125,7 @@ class MulticastServer(asyncore.dispatcher):
 
     def handle_accept(self):
         channel, addr = self.accept()
-        print('received %s bytes from %s' % (data, addr))
+        print(f'received {data} bytes from {addr}')
 
 
 def main(argv):

@@ -10,7 +10,7 @@ from rspy import test
 ctx = rs.context()
 dev = ctx.query_devices()[0]
 pid = dev.get_info(rs.camera_info.product_id)
-print(dev.get_info(rs.camera_info.name) + " found")
+print(f"{dev.get_info(rs.camera_info.name)} found")
 if pid != "0B5B":
     print("This test is dedicated to run with D405 only - stepping over test")
     sys.exit(0)
@@ -45,12 +45,8 @@ try:
             elif profile.stream_type() == rs.stream.color:
                 color_stream_found = True
         test.check(ir_1_stream_found and ir_2_stream_found and color_stream_found)
-    pass
-
 except Exception as e:
     print(e)
-    pass
-
 test.finish()
 
 #############################################################################################
@@ -83,12 +79,8 @@ try:
             elif profile.stream_type() == rs.stream.color:
                 color_stream_found = True
         test.check(ir_1_stream_found and ir_2_stream_found and color_stream_found)
-    pass
-
 except Exception as e:
     print(e)
-    pass
-
 test.finish()
 #############################################################################################
 test.start("D405 implicit configuration - IR calibration, Color")
@@ -116,12 +108,8 @@ try:
             elif profile.stream_type() == rs.stream.color:
                 color_stream_found = True
         test.check(ir_1_stream_found and color_stream_found)
-    pass
-
 except Exception as e:
     print(e)
-    pass
-
 test.finish()
 
 

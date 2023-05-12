@@ -16,10 +16,7 @@ logdir = None
 # This is always a directory called "LibCI", but may be in different locations, in this order of priority:
 #     1. C:\LibCI  (on the LibCI machine)
 #     2. ~/LibCI   (in Windows, ~ is likely C:\Users\<username>)
-if platform.system() == 'Linux':
-    home = '/usr/local/lib/ci'
-else:
-    home = 'C:\\LibCI'
+home = '/usr/local/lib/ci' if platform.system() == 'Linux' else 'C:\\LibCI'
 if not os.path.isdir( home ):
     home = os.path.normpath( os.path.expanduser( '~/LibCI' ))
 #
@@ -63,11 +60,7 @@ def run( cmd, stdout = None, timeout = 200, append = False ):
                              timeout=timeout,
                              check=True )
         result = rv.stdout
-        if not result:
-            result = []
-        else:
-            result = result.split( '\n' )
-        return result
+        return [] if not result else result.split( '\n' )
     finally:
         if handle:
             handle.close()
@@ -82,7 +75,7 @@ class TestConfig( ABC ):  # Abstract Base Class
     """
 
     def __init__( self, context ):
-        self._configurations = list()
+        self._configurations = []
         self._priority = 1000
         self._tags = set()
         self._flags = set()
@@ -98,7 +91,7 @@ class TestConfig( ABC ):  # Abstract Base Class
         if self._timeout != 200:
             log.d( 'timeout:', self._timeout )
         if len( self._tags ) > 1:
-            log.d( 'tags:', { tag for tag in self._tags if tag != "exe" and tag != "py" } )
+            log.d('tags:', {tag for tag in self._tags if tag not in ["exe", "py"]})
         if self._flags:
             log.d( 'flags:', self._flags )
         if len( self._configurations ) > 1:
@@ -162,7 +155,7 @@ class TestConfigFromText( TestConfig ):
         # If a context is not specified, the directive always applies. Any directive with a context
         # will only get applied if we're running under the context it specifies (! means not, so
         # !nightly means when not under nightly).
-        regex  = r'^' + line_prefix
+        regex = f'^{line_prefix}'
         regex += r'([^\s:]+)'          # 1: directive
         regex += r'(?::(\S+))?'        # 2: optional context
         regex += r'((?:\s+\S+)*?)'     # 3: params
@@ -172,7 +165,7 @@ class TestConfigFromText( TestConfig ):
             directive = match.group( 1 )
             directive_context = match.group( 2 )
             text_params = match.group( 3 ).strip()
-            params = [s for s in text_params.split()]
+            params = list(text_params.split())
             comment = match.group( 4 )
             if directive_context:
                 not_context = directive_context.startswith('!')
@@ -192,19 +185,39 @@ class TestConfigFromText( TestConfig ):
                 # log.d( '    configuration:', params )
                 params_lower_list = text_params.lower().split()
                 if not params:
-                    log.e( source + '+' + str( line['index'] ) + ': device directive with no devices listed' )
+                    log.e(
+                        f'{source}+'
+                        + str(line['index'])
+                        + ': device directive with no devices listed'
+                    )
                 elif sum(s.startswith('each(') for s in params_lower_list) > 1:
-                    log.e( source + '+' + str(
-                            line['index'] ) + ': each() cannot be used multiple times in same line', params )
+                    log.e(
+                        (
+                            (f'{source}+' + str(line['index']))
+                            + ': each() cannot be used multiple times in same line'
+                        ),
+                        params,
+                    )
                 elif params_lower_list[0].startswith('each('):
                     if not re.fullmatch( r'each\(.+\)', params_lower_list[0], re.IGNORECASE ):
-                        log.e( source + '+' + str( line['index'] ) + ': invalid \'each\' syntax:', params )
+                        log.e(
+                            f'{source}+'
+                            + str(line['index'])
+                            + ': invalid \'each\' syntax:',
+                            params,
+                        )
                     else:
                         for param in params_lower_list[1:]:
                             if not param.startswith("!"):
-                                log.e(source + '+' + str(line['index']) + ': invalid syntax:', params,
-                                      '. All device names after \'' + params[0] +
-                                      '\' must start with \'!\' in order to skip them')
+                                log.e(
+                                    f'{source}+'
+                                    + str(line['index'])
+                                    + ': invalid syntax:',
+                                    params,
+                                    '. All device names after \''
+                                    + params[0]
+                                    + '\' must start with \'!\' in order to skip them',
+                                )
                             break
                         else:
                             self._configurations.append( params )
@@ -214,25 +227,43 @@ class TestConfigFromText( TestConfig ):
                 if len( params ) == 1 and params[0].isdigit():
                     self._priority = int( params[0] )
                 else:
-                    log.e( source + '+' + str( line['index'] ) + ': priority directive with invalid parameters:',
-                           params )
+                    log.e(
+                        f'{source}+'
+                        + str(line['index'])
+                        + ': priority directive with invalid parameters:',
+                        params,
+                    )
             elif directive == 'timeout':
                 if len( params ) == 1 and params[0].isdigit():
                     self._timeout = int( params[0] )
                 else:
-                    log.e( source + '+' + str( line['index'] ) + ': timeout directive with invalid parameters:',
-                           params )
+                    log.e(
+                        f'{source}+'
+                        + str(line['index'])
+                        + ': timeout directive with invalid parameters:',
+                        params,
+                    )
             elif directive == 'tag':
                 self._tags.update( map( str.lower, params ))  # tags are case-insensitive
             elif directive == 'flag':
                 self._flags.update( params )
             elif directive == 'donotrun':
                 if params:
-                    log.e( source + '+' + str( line['index'] ) + ': donotrun directive should not have parameters:',
-                           params )
+                    log.e(
+                        f'{source}+'
+                        + str(line['index'])
+                        + ': donotrun directive should not have parameters:',
+                        params,
+                    )
                 self._donotrun = True
             else:
-                log.e( source + '+' + str( line['index'] ) + ': invalid directive "' + directive + '"; ignoring' )
+                log.e(
+                    f'{source}+'
+                    + str(line['index'])
+                    + ': invalid directive "'
+                    + directive
+                    + '"; ignoring'
+                )
 
     def derive_tags_from_path( self, source ):
         # we need the relative path starting at the unit-tests directory
@@ -286,11 +317,7 @@ class Test( ABC ):  # Abstract Base Class
 
     def get_log( self ):
         global logdir
-        if not logdir:
-            path = None
-        else:
-            path = logdir + os.sep + self.name + ".log"
-        return path
+        return None if not logdir else logdir + os.sep + self.name + ".log"
 
     def is_live( self ):
         """
@@ -333,9 +360,9 @@ class Test( ABC ):  # Abstract Base Class
 
         path += os.sep + '-'.join( split_testname )
         relative_path += '-'.join( split_testname )
-        if os.path.isfile( path + ".cpp" ):
+        if os.path.isfile(f"{path}.cpp"):
             relative_path += ".cpp"
-        elif os.path.isfile( path + ".py" ):
+        elif os.path.isfile(f"{path}.py"):
             relative_path += ".py"
         else:
             log.w( log.red + self.name + log.reset + ':',
@@ -400,7 +427,7 @@ class PyTest( Test ):
         try:
             cmd = self.command
             if opts:
-                cmd += [opt for opt in opts]
+                cmd += list(opts)
             run( cmd, stdout=log_path, append=self.ran, timeout=self.config.timeout )
         finally:
             self._ran = True
@@ -419,12 +446,11 @@ class ExeTest( Test ):
         """
         global unit_tests_dir
         if exe and not os.path.isfile( exe ):
-            log.d( "Tried to create exe test with invalid exe file: " + exe )
+            log.d(f"Tried to create exe test with invalid exe file: {exe}")
         Test.__init__( self, testname )
         self.exe = exe
 
-        relative_test_path = self.find_source_path()
-        if relative_test_path:
+        if relative_test_path := self.find_source_path():
             self._config = TestConfigFromCpp( unit_tests_dir + os.sep + relative_test_path, context )
         else:
             self._config = TestConfig(context)
@@ -448,11 +474,11 @@ class ExeTest( Test ):
 
     def run_test( self, configuration = None, log_path = None, opts = set() ):
         if not self.exe:
-            raise RuntimeError("Tried to run test " + self.name + " with no exe file provided")
+            raise RuntimeError(f"Tried to run test {self.name} with no exe file provided")
         try:
             cmd = self.command
             if opts:
-                cmd += [opt for opt in opts]
+                cmd += list(opts)
             run( cmd, stdout=log_path, append=self.ran, timeout=self.config.timeout )
         finally:
             self._ran = True

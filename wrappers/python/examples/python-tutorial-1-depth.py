@@ -31,21 +31,13 @@ try:
         for y in range(480):
             for x in range(640):
                 dist = depth.get_distance(x, y)
-                if 0 < dist and dist < 1:
+                if 0 < dist < 1:
                     coverage[x//10] += 1
-            
+
             if y%20 is 19:
-                line = ""
-                for c in coverage:
-                    line += " .:nhBXWW"[c//25]
+                line = "".join(" .:nhBXWW"[c//25] for c in coverage)
                 coverage = [0]*64
                 print(line)
     exit(0)
-#except rs.error as e:
-#    # Method calls agaisnt librealsense objects may throw exceptions of type pylibrs.error
-#    print("pylibrs.error was thrown when calling %s(%s):\n", % (e.get_failed_function(), e.get_failed_args()))
-#    print("    %s\n", e.what())
-#    exit(1)
 except Exception as e:
     print(e)
-    pass

@@ -57,7 +57,7 @@ except ModuleNotFoundError:
 
 import time
 
-_device_by_sn = dict()
+_device_by_sn = {}
 _context = None
 _acroname_hubs = set()
 
@@ -125,7 +125,7 @@ def wait_until_all_ports_disabled( timeout = 5 ):
     """
     Waits for all ports to be disabled
     """
-    for retry in range( timeout ):
+    for _ in range( timeout ):
         if len( enabled() ) == 0:
             return True
         time.sleep( 1 )
@@ -175,25 +175,23 @@ def map_unknown_ports():
             log.d( 'enabling port', port )
             acroname.enable_ports( [port], disable_other_ports=True )
             sn = None
-            for retry in range( 5 ):
+            for _ in range( 5 ):
                 if len( enabled() ) == 1:
                     sn = list( enabled() )[0]
                     break
                 time.sleep( 1 )
             if not sn:
                 log.d( 'could not recognize device in port', port )
+            elif device := _device_by_sn.get(sn):
+                log.d( '... port', port, 'has', device.handle )
+                n_identified_ports += 1
+                device._port = port
+                if len( devices_with_unknown_ports ) == n_identified_ports:
+                    #log.d( 'no more devices; stopping' )
+                    break
             else:
-                device = _device_by_sn.get( sn )
-                if device:
-                    log.d( '... port', port, 'has', device.handle )
-                    device._port = port
-                    n_identified_ports += 1
-                    if len( devices_with_unknown_ports ) == n_identified_ports:
-                        #log.d( 'no more devices; stopping' )
-                        break
-                else:
-                    log.w( "Device with serial number", sn, "was found in port", port,
-                            "but was not in context" )
+                log.w( "Device with serial number", sn, "was found in port", port,
+                        "but was not in context" )
             acroname.disable_ports( [port] )
             wait_until_all_ports_disabled()
     finally:
@@ -211,18 +209,17 @@ def query( monitor_changes = True ):
     #
     # Before we can start a context and query devices, we need to enable all the ports
     # on the acroname, if any:
-    if acroname:
-        if not acroname.hub:
-            acroname.connect()  # MAY THROW!
-            acroname.enable_ports( sleep_on_change = 5 )  # make sure all connected!
-            if platform.system() == 'Linux':
-                global _acroname_hubs
-                _acroname_hubs = set( acroname.find_all_hubs() )
+    if acroname and not acroname.hub:
+        acroname.connect()  # MAY THROW!
+        acroname.enable_ports( sleep_on_change = 5 )  # make sure all connected!
+        if platform.system() == 'Linux':
+            global _acroname_hubs
+            _acroname_hubs = set( acroname.find_all_hubs() )
     #
     # Get all devices, and store by serial-number
     global _device_by_sn, _context, _port_to_sn
     _context = rs.context()
-    _device_by_sn = dict()
+    _device_by_sn = {}
     try:
         log.d( 'discovering devices ...' )
         log.debug_indent()
@@ -244,7 +241,7 @@ def query( monitor_changes = True ):
             sn = dev.get_info( rs.camera_info.firmware_update_id )
             device = Device( sn, dev )
             _device_by_sn[sn] = device
-            log.d( '... port {}:'.format( device.port is None and '?' or device.port ), sn, dev )
+            log.d(f"... port {device.port is None and '?' or device.port}:", sn, dev)
     finally:
         log.debug_unindent()
     #
@@ -331,11 +328,9 @@ def _get_sns_from_spec( spec, ignored_products ):
     :return: A set of device serial-numbers
     """
     if spec.endswith( '*' ):
-        for sn in by_product_line( spec[:-1], ignored_products ):
-            yield sn
+        yield from by_product_line( spec[:-1], ignored_products )
     else:
-        for sn in by_name( spec, ignored_products ):
-            yield sn
+        yield from by_name( spec, ignored_products )
 
 
 def expand_specs( specs ):
@@ -347,15 +342,12 @@ def expand_specs( specs ):
     """
     expanded = set()
     for spec in specs:
-        sns = {sn for sn in _get_sns_from_spec( spec )}
-        if sns:
+        if sns := set(_get_sns_from_spec(spec)):
             expanded.update( sns )
+        elif get(spec):
+            expanded.add( spec )
         else:
-            # maybe the spec is a specific serial-number?
-            if get(spec):
-                expanded.add( spec )
-            else:
-                log.d( 'unknown spec:', spec )
+            log.d( 'unknown spec:', spec )
     return expanded
 
 
@@ -370,9 +362,8 @@ def load_specs_from_file( filename ):
     from rspy import file
     exceptions = set()
     for line, comment in file.split_comments( filename ):
-        specs = line.split()
-        if specs:
-            log.d( '...', specs, comment and ('  # ' + comment) or '', )
+        if specs := line.split():
+            log.d('...', specs, comment and f'  # {comment}' or '')
             exceptions.update( specs )
     return exceptions
 
@@ -401,7 +392,9 @@ def by_configuration( config, exceptions = None ):
         else:
             new_config.append(p)
 
-    if len( new_config ) > 0 and re.fullmatch( r'each\(.+\)', new_config[0], re.IGNORECASE ):
+    if new_config and re.fullmatch(
+        r'each\(.+\)', new_config[0], re.IGNORECASE
+    ):
         spec = new_config[0][5:-1]
         for sn in _get_sns_from_spec( spec, ignored_products ):
             if sn not in exceptions:
@@ -418,13 +411,13 @@ def by_configuration( config, exceptions = None ):
                     break
             new_len = len(sns)
             if new_len == old_len:
-                error = 'no device matches configuration "' + spec + '"'
+                error = f'no device matches configuration "{spec}"'
                 if old_len:
-                    error += ' (after already matching ' + str(sns) + ')'
+                    error += f' (after already matching {sns})'
                 if ignored_products:
-                    error += ' (!' + str(ignored_products) + ')'
+                    error += f' (!{ignored_products})'
                 if exceptions:
-                    error += ' (-' + str(exceptions) + ')'
+                    error += f' (-{str(exceptions)})'
                 raise RuntimeError( error )
         if sns:
             yield sns
@@ -529,12 +522,8 @@ def _wait_until_removed( serial_numbers, timeout = 5 ):
     :return: True if all have come offline; False if timeout was reached
     """
     while True:
-        have_devices = False
         enabled_sns = enabled()
-        for sn in serial_numbers:
-            if sn in enabled_sns:
-                have_devices = True
-                break
+        have_devices = any(sn in enabled_sns for sn in serial_numbers)
         if not have_devices:
             return True
         #
@@ -560,13 +549,8 @@ def _wait_for( serial_numbers, timeout = 5 ):
         timeout += 5
     #
     while True:
-        #
-        have_all_devices = True
         enabled_sns = enabled()
-        for sn in serial_numbers:
-            if sn not in enabled_sns:
-                have_all_devices = False
-                break
+        have_all_devices = all(sn in enabled_sns for sn in serial_numbers)
         #
         if have_all_devices:
             if did_some_waiting:
@@ -619,21 +603,16 @@ if 'windows' in platform.system().lower():
         #   \\?\usb#vid_8086&pid_0b07&mi_00#6&8bfcab3&0&0000#{e5323777-f976-4f5b-9b55-b94699c46e44}\global
         #
         re_result = re.match( r'.*\\(.*)#vid_(.*)&pid_(.*)(?:&mi_(.*))?#(.*)#', physical_port, flags = re.IGNORECASE )
-        dev_type = re_result.group(1)
-        vid = re_result.group(2)
-        pid = re_result.group(3)
-        mi = re_result.group(4)
-        unique_identifier = re_result.group(5)
+        dev_type = re_result[1]
+        vid = re_result[2]
+        pid = re_result[3]
+        unique_identifier = re_result[5]
         #
         import winreg
-        if mi:
-            registry_path = "SYSTEM\CurrentControlSet\Enum\{}\VID_{}&PID_{}&MI_{}\{}".format(
-                dev_type, vid, pid, mi, unique_identifier
-                )
+        if mi := re_result[4]:
+            registry_path = f"SYSTEM\CurrentControlSet\Enum\{dev_type}\VID_{vid}&PID_{pid}&MI_{mi}\{unique_identifier}"
         else:
-            registry_path = "SYSTEM\CurrentControlSet\Enum\{}\VID_{}&PID_{}\{}".format(
-                dev_type, vid, pid, unique_identifier
-                )
+            registry_path = f"SYSTEM\CurrentControlSet\Enum\{dev_type}\VID_{vid}&PID_{pid}\{unique_identifier}"
         try:
             reg_key = winreg.OpenKey( winreg.HKEY_LOCAL_MACHINE, registry_path )
         except FileNotFoundError:
@@ -649,16 +628,14 @@ if 'windows' in platform.system().lower():
         """
         """
         if usb_location:
-            #
-            # T265 locations look differently...
-            match = re.fullmatch( r'Port_#(\d+)\.Hub_#(\d+)', usb_location, re.IGNORECASE )
-            if match:
+            if match := re.fullmatch(
+                r'Port_#(\d+)\.Hub_#(\d+)', usb_location, re.IGNORECASE
+            ):
                 # We don't know how to get the port from these yet!
                 return None #int(match.group(2))
-            else:
-                split_location = [int(x) for x in usb_location.split('.')]
-                # only the last two digits are necessary
-                return acroname.get_port_from_usb( split_location[-5], split_location[-4] )
+            split_location = [int(x) for x in usb_location.split('.')]
+            # only the last two digits are necessary
+            return acroname.get_port_from_usb( split_location[-5], split_location[-4] )
     #
 else:
     #
@@ -706,10 +683,11 @@ else:
             #
             global _acroname_hubs
             for port in _acroname_hubs:
-                if usb_location.startswith( port + '.' ):
-                    match = re.search( r'^(\d+)\.(\d+)', usb_location[len(port)+1:] )
-                    if match:
-                        return acroname.get_port_from_usb( int(match.group(1)), int(match.group(2)) )
+                if usb_location.startswith(f'{port}.'):
+                    if match := re.search(
+                        r'^(\d+)\.(\d+)', usb_location[len(port) + 1 :]
+                    ):
+                        return acroname.get_port_from_usb(int(match[1]), int(match[2]))
 
 
 ###############################################################################################

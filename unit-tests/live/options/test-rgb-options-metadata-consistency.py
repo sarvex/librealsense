@@ -39,7 +39,7 @@ def check_option_and_metadata_values(option, metadata, value_to_set, frame):
         changed_md = frame.get_frame_metadata(metadata)
         test.check_equal(changed_md, value_to_set)
     else:
-        print("metadata " + repr(metadata) + " not supported")
+        print(f"metadata {repr(metadata)} not supported")
 
 #############################################################################################
 test.start("checking color options")

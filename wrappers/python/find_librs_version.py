@@ -18,20 +18,20 @@ with io.open(rs_h_path, 'r') as f:
     major = re.search(r"#define\s*RS2_API_MAJOR_VERSION\s*(\d+)",file_content)
     if not major:
         raise Exception('No major number')
-    librs_version += major.group(1)
+    librs_version += major[1]
     librs_version += '.'
     minor = re.search(r"#define\s*RS2_API_MINOR_VERSION\s*(\d+)",file_content)
     if not minor:
         raise Exception('No minor number')
-    librs_version += minor.group(1)
+    librs_version += minor[1]
     librs_version += '.'
     patch = re.search(r"#define\s*RS2_API_PATCH_VERSION\s*(\d+)",file_content)
     if not patch:
         raise Exception('No patch number')
-    librs_version += patch.group(1)
+    librs_version += patch[1]
 
     print("Librealsense Version: ", librs_version)
     outfile = os.path.join(output_dir, '_version.py')
     print("Writing version to: ", outfile)
     with open(outfile, 'w') as f:
-        f.write('__version__ = "{}"'.format(librs_version))
+        f.write(f'__version__ = "{librs_version}"')

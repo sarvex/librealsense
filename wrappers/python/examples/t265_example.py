@@ -25,15 +25,13 @@ try:
         # Wait for the next set of frames from the camera
         frames = pipe.wait_for_frames()
 
-        # Fetch pose frame
-        pose = frames.get_pose_frame()
-        if pose:
+        if pose := frames.get_pose_frame():
             # Print some of the pose data to the terminal
             data = pose.get_pose_data()
-            print("Frame #{}".format(pose.frame_number))
-            print("Position: {}".format(data.translation))
-            print("Velocity: {}".format(data.velocity))
-            print("Acceleration: {}\n".format(data.acceleration))
+            print(f"Frame #{pose.frame_number}")
+            print(f"Position: {data.translation}")
+            print(f"Velocity: {data.velocity}")
+            print(f"Acceleration: {data.acceleration}\n")
 
 finally:
     pipe.stop()

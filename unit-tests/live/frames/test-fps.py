@@ -58,7 +58,7 @@ dev = test.find_first_device_or_exit()
 product_line = dev.get_info(rs.camera_info.product_line)
 
 #####################################################################################################
-test.start("Testing depth fps " + product_line + " device - "+ platform.system() + " OS")
+test.start(f"Testing depth fps {product_line} device - {platform.system()} OS")
 
 for requested_fps in tested_fps:
     ds = dev.first_depth_sensor()
@@ -81,7 +81,7 @@ test.finish()
 
 
 #####################################################################################################
-test.start("Testing color fps " + product_line + " device - "+ platform.system() + " OS")
+test.start(f"Testing color fps {product_line} device - {platform.system()} OS")
 
 for requested_fps in tested_fps:
     cs = dev.first_color_sensor()

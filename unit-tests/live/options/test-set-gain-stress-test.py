@@ -28,7 +28,7 @@ if not depth_ir_sensor.supports(rs.option.gain):
 
 
 for i in range(test_iterations):
-    log.d("{} Iteration {} {}".format("=" * 50, i, "=" * 50))
+    log.d(f'{"=" * 50} Iteration {i} {"=" * 50}')
 
     # Reset Control values
     log.d("Resetting Controls...")
@@ -44,11 +44,11 @@ for i in range(test_iterations):
 
     time.sleep(0.1)
     for val in gain_values:
-        log.d("Setting Gain To: {}".format(val))
+        log.d(f"Setting Gain To: {val}")
         depth_ir_sensor.set_option(rs.option.gain, val)
         get_val = depth_ir_sensor.get_option(rs.option.gain)
         test.check(val == get_val)
-        log.d("Gain Set To: {}".format(get_val))
+        log.d(f"Gain Set To: {get_val}")
 
 test.finish()
 

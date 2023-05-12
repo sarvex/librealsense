@@ -126,10 +126,7 @@ def kabsch(P, Q):
         S[-1] = -S[-1]
         V[:, -1] = -V[:, -1]
 
-    # Create Rotation matrix U
-    U = np.dot(V, W)
-
-    return U
+    return np.dot(V, W)
 
 
 def quaternion_rmsd(P, Q):
@@ -162,32 +159,35 @@ def quaternion_transform(r):
     """
     Wt_r = makeW(*r).T
     Q_r = makeQ(*r)
-    rot = Wt_r.dot(Q_r)[:3, :3]
-    return rot
+    return Wt_r.dot(Q_r)[:3, :3]
 
 
 def makeW(r1, r2, r3, r4=0):
     """
     matrix involved in quaternion rotation
     """
-    W = np.asarray([
-             [r4, r3, -r2, r1],
-             [-r3, r4, r1, r2],
-             [r2, -r1, r4, r3],
-             [-r1, -r2, -r3, r4]])
-    return W
+    return np.asarray(
+        [
+            [r4, r3, -r2, r1],
+            [-r3, r4, r1, r2],
+            [r2, -r1, r4, r3],
+            [-r1, -r2, -r3, r4],
+        ]
+    )
 
 
 def makeQ(r1, r2, r3, r4=0):
     """
     matrix involved in quaternion rotation
     """
-    Q = np.asarray([
-             [r4, -r3, r2, r1],
-             [r3, r4, -r1, r2],
-             [-r2, r1, r4, r3],
-             [-r1, -r2, -r3, r4]])
-    return Q
+    return np.asarray(
+        [
+            [r4, -r3, r2, r1],
+            [r3, r4, -r1, r2],
+            [-r2, r1, r4, r3],
+            [-r1, -r2, -r3, r4],
+        ]
+    )
 
 
 def quaternion_rotate(X, Y):
@@ -214,8 +214,7 @@ def quaternion_rotate(X, Y):
     A = np.sum(Qt_dot_W, axis=0)
     eigen = np.linalg.eigh(A)
     r = eigen[1][:, eigen[0].argmax()]
-    rot = quaternion_transform(r)
-    return rot
+    return quaternion_transform(r)
 
 
 def centroid(X):
@@ -239,8 +238,7 @@ def centroid(X):
         centeroid
 
     """
-    C = X.mean(axis=0)
-    return C
+    return X.mean(axis=0)
 
 
 def rmsd(V, W):
@@ -264,7 +262,7 @@ def rmsd(V, W):
     N = len(V)
     rmsd = 0.0
     for v, w in zip(V, W):
-        rmsd += sum([(v[i] - w[i])**2.0 for i in range(D)])
+        rmsd += sum((v[i] - w[i])**2.0 for i in range(D))
     return np.sqrt(rmsd/N)
 
 
@@ -284,7 +282,7 @@ def write_coordinates(atoms, V, title=""):
     """
     N, D = V.shape
 
-    print(str(N))
+    print(N)
     print(title)
 
     for i in range(N):
@@ -345,11 +343,11 @@ def get_coordinates_pdb(filename):
     # Since the format doesn't require a space between columns, we use the
     # above column indices as a fallback.
     x_column = None
-    V = list()
+    V = []
     # Same with atoms and atom naming.
     # The most robust way to do this is probably
     # to assume that the atomtype is given in column 3.
-    atoms = list()
+    atoms = []
 
     with open(filename, 'r') as f:
         lines = f.readlines()
@@ -373,7 +371,7 @@ def get_coordinates_pdb(filename):
                 except:
                         exit("Error parsing atomtype for the following line: \n{0:s}".format(line))
 
-                if x_column == None:
+                if x_column is None:
                     try:
                         # look for x column
                         for i, x in enumerate(tokens):
@@ -421,40 +419,39 @@ def get_coordinates_xyz(filename):
 
     """
 
-    f = open(filename, 'r')
-    V = list()
-    atoms = list()
-    n_atoms = 0
+    with open(filename, 'r') as f:
+        V = []
+        atoms = []
+        n_atoms = 0
 
-    # Read the first line to obtain the number of atoms to read
-    try:
-        n_atoms = int(f.readline())
-    except ValueError:
-        exit("Could not obtain the number of atoms in the .xyz file.")
+        # Read the first line to obtain the number of atoms to read
+        try:
+            n_atoms = int(f.readline())
+        except ValueError:
+            exit("Could not obtain the number of atoms in the .xyz file.")
 
-    # Skip the title line
-    f.readline()
+        # Skip the title line
+        f.readline()
 
-    # Use the number of atoms to not read beyond the end of a file
-    for lines_read, line in enumerate(f):
+        # Use the number of atoms to not read beyond the end of a file
+        for lines_read, line in enumerate(f):
 
-        if lines_read == n_atoms:
-            break
+            if lines_read == n_atoms:
+                break
 
-        atom = re.findall(r'[a-zA-Z]+', line)[0]
-        atom = atom.upper()
+            atom = re.findall(r'[a-zA-Z]+', line)[0]
+            atom = atom.upper()
 
-        numbers = re.findall(r'[-]?\d+\.\d*(?:[Ee][-\+]\d+)?', line)
-        numbers = [float(number) for number in numbers]
+            numbers = re.findall(r'[-]?\d+\.\d*(?:[Ee][-\+]\d+)?', line)
+            numbers = [float(number) for number in numbers]
 
-        # The numbers are not valid unless we obtain exacly three
-        if len(numbers) == 3:
-            V.append(np.array(numbers))
-            atoms.append(atom)
-        else:
-            exit("Reading the .xyz file failed in line {0}. Please check the format.".format(lines_read + 2))
+            # The numbers are not valid unless we obtain exacly three
+            if len(numbers) == 3:
+                V.append(np.array(numbers))
+                atoms.append(atom)
+            else:
+                exit("Reading the .xyz file failed in line {0}. Please check the format.".format(lines_read + 2))
 
-    f.close()
     atoms = np.array(atoms)
     V = np.array(V)
     return atoms, V
@@ -486,7 +483,12 @@ https://github.com/charnley/rmsd
                     formatter_class=argparse.RawDescriptionHelpFormatter,
                     epilog=epilog)
 
-    parser.add_argument('-v', '--version', action='version', version='rmsd ' + __version__ + "\nhttps://github.com/charnley/rmsd")
+    parser.add_argument(
+        '-v',
+        '--version',
+        action='version',
+        version=f'rmsd {__version__}' + "\nhttps://github.com/charnley/rmsd",
+    )
 
     parser.add_argument('structure_a', metavar='structure_a', type=str, help='Structure in .xyz or .pdb format')
     parser.add_argument('structure_b', metavar='structure_b', type=str)
@@ -516,7 +518,7 @@ https://github.com/charnley/rmsd
         args.quater = True
 
     # As default, load the extension as format
-    if args.format == None:
+    if args.format is None:
         args.format = args.structure_a.split('.')[-1]
 
     p_atoms, p_all = get_coordinates(args.structure_a, args.format)
@@ -565,7 +567,7 @@ https://github.com/charnley/rmsd
         p_all -= Pc
         p_all = np.dot(p_all, U)
         p_all += Qc
-        write_coordinates(p_atoms, p_all, title="{} translated".format(args.structure_a))
+        write_coordinates(p_atoms, p_all, title=f"{args.structure_a} translated")
         quit()
 
     if args.kabsch:

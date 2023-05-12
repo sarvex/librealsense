@@ -94,11 +94,10 @@ class Transformation:
 			(3, N) transformed matrix
 		"""
 		assert(points.shape[0] == 3)
-		n = points.shape[1] 
+		n = points.shape[1]
 		points_ = np.vstack((points, np.ones((1,n))))
 		points_trans_ = np.matmul(self.pose_mat, points_)
-		points_transformed = np.true_divide(points_trans_[:3,:], points_trans_[[-1], :])
-		return points_transformed
+		return np.true_divide(points_trans_[:3,:], points_trans_[[-1], :])
 	
 	def inverse(self):
 		"""

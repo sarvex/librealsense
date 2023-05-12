@@ -119,7 +119,9 @@ class LRSFrameQueueManager:
         self._post_process_queue.put((LRSFrameQueueManager.Event.TERMINATE_CONSUMER, time.time()))
         self._consumer_thread.join(timeout=timeout)
         if self._consumer_thread.is_alive():
-            raise RuntimeError("frame queue hasn't been empty and frame consuming thread hans't been terminated within {} seconds".format(timeout))
+            raise RuntimeError(
+                f"frame queue hasn't been empty and frame consuming thread hans't been terminated within {timeout} seconds"
+            )
         self._logger.info("frames queue is empty and consuming thread was terminated")
         self._consumer_thread = None
 
@@ -127,7 +129,9 @@ class LRSFrameQueueManager:
         self._terminate_producer_event.set()
         self._producer_thread.join(timeout=timeout)
         if self._producer_thread.is_alive():
-            raise RuntimeError("frame producing thread han't been terminated within {} seconds".format(timeout))
+            raise RuntimeError(
+                f"frame producing thread han't been terminated within {timeout} seconds"
+            )
         self._logger.info("producing thread was terminated")
         self._producer_thread = None
 
@@ -185,20 +189,26 @@ class LRSFrameQueueManager:
                 continue
             # self._logger.debug("got a frame from lrs_queue")
             if self._block_queue_event.is_set():
-                self._logger.debug("queue is blocked, dropped frame #{} of stream {}".format(lrs_frame.get_frame_number(), lrs_frame.get_profile().stream_type()))
+                self._logger.debug(
+                    f"queue is blocked, dropped frame #{lrs_frame.get_frame_number()} of stream {lrs_frame.get_profile().stream_type()}"
+                )
                 continue
             # self._logger.debug("putting the frame in the queue")
             try:
                 self._post_process_queue.put((lrs_frame, frame_ts), block=True, timeout=timeout)
             except Full:
-                self._logger.error("frame queue is full for more than {} seconds, dropped frame #{}".format(timeout, lrs_frame.get_frame_number()))
+                self._logger.error(
+                    f"frame queue is full for more than {timeout} seconds, dropped frame #{lrs_frame.get_frame_number()}"
+                )
                 continue
             produce_time = (time.time() - start) * 1000.0
             queue_size = self._post_process_queue.qsize()
             if self.statistics:
                 self._producing_times.append(produce_time)
                 self._producer_queue_sizes.append(queue_size)
-            self._logger.debug("added frame to the queue within: {} ms, queue size: {}".format(produce_time, queue_size))
+            self._logger.debug(
+                f"added frame to the queue within: {produce_time} ms, queue size: {queue_size}"
+            )
 
     def _consume_frames(self):
         while True:
@@ -214,7 +224,9 @@ class LRSFrameQueueManager:
                 if self._process:
                     self._process(lrs_frame, ts)
                 else:
-                    self._logger.debug("no post-process callback is configured, dropping frame #{} of stream {}".format(lrs_frame.get_frame_number(), lrs_frame.get_profile().stream_type()))
+                    self._logger.debug(
+                        f"no post-process callback is configured, dropping frame #{lrs_frame.get_frame_number()} of stream {lrs_frame.get_profile().stream_type()}"
+                    )
                     continue
             except Exception as ex:
                 self._logger.exception(ex)
@@ -223,7 +235,9 @@ class LRSFrameQueueManager:
             queue_size = self._post_process_queue.qsize()
             # self._logger.debug("marking the frame as a done task")
             self._post_process_queue.task_done()
-            self._logger.debug("consumed a frame from the queue within {} ms, queue size: {}".format(consume_time, queue_size))
+            self._logger.debug(
+                f"consumed a frame from the queue within {consume_time} ms, queue size: {queue_size}"
+            )
             if self.statistics:
                 self._consumer_queue_sizes.append(queue_size)
                 self._consuming_times.append(consume_time)
@@ -232,7 +246,7 @@ class LRSFrameQueueManager:
         """Save internal performance statistics gathered by the producer and consumer threads in a CSV file under '~/queue_<ts>.csv'
         """
         if self.statistics:
-            with open(os.path.join(os.path.expanduser('~'), 'queue_{}.csv'.format(datetime.now().strftime("%d-%m-%Y-%H-%M-%S.%f"))), 'wb') as csv_file:
+            with open(os.path.join(os.path.expanduser('~'), f'queue_{datetime.now().strftime("%d-%m-%Y-%H-%M-%S.%f")}.csv'), 'wb') as csv_file:
                 fieldnames = ['producing_time', 'producer_queue_size', 'consuming_time', 'consumer_queue_size', 'memory']
                 writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
                 writer.writeheader()

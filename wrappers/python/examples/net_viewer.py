@@ -19,7 +19,7 @@ if len(sys.argv) == 1:
 ip = sys.argv[1]
 
 ctx = rs.context()
-print ('Connecting to ' + ip)
+print(f'Connecting to {ip}')
 dev = rsnet.net_device(ip)
 print ('Connected')
 print ('Using device 0,', dev.get_info(rs.camera_info.name), ' Serial number: ', dev.get_info(rs.camera_info.serial_number))

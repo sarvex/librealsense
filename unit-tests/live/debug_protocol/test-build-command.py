@@ -12,17 +12,12 @@ from rspy import devices, log, test, file, repo
 #############################################################################################
 
 def convert_bytes_string_to_decimal_list(command):
-    command_input = []  # array of uint_8t
-
     # Parsing the command to array of unsigned integers(size should be < 8bits)
     # threw out spaces
     command = command.lower()
     command = command.split()
 
-    for byte in command:
-        command_input.append(int('0x' + byte, 0))
-
-    return command_input
+    return [int(f'0x{byte}', 0) for byte in command]
 
 
 def send_hardware_monitor_command(device, command):
@@ -55,7 +50,9 @@ try:
     magic_number = "ab cd"
     gvd_opcode_as_string = "10 00 00 00"  # gvd opcode = 0x10
     params_and_data = "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"  # empty params and data
-    gvd_command = msg_length + " " + magic_number + " " + gvd_opcode_as_string + " " + params_and_data
+    gvd_command = (
+        f"{msg_length} {magic_number} {gvd_opcode_as_string} {params_and_data}"
+    )
     raw_command = convert_bytes_string_to_decimal_list(gvd_command)
 
     status, old_scenario_result = send_hardware_monitor_command(dev, raw_command)

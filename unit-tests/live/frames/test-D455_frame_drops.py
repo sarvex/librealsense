@@ -90,7 +90,7 @@ if __name__ == '__main__':
             #print("* frame drops = ", self.count_drops)
 
         def analysis(self):
-            print ("Number of frame drops is {}".format(self.count_drops))
+            print(f"Number of frame drops is {self.count_drops}")
             for k, v in self.frame_drops_info:
                 print("Number of dropped frame before frame ", k, ", is :", v)
 

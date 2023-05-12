@@ -34,19 +34,18 @@ def itree():
             match = re.search( r'Bus (\d+).', i )
             if not match:
                 raise ValueError( f'expected "Bus #." in "{i}"' )
-            bus = int( match.group(1) )
+            bus = int(match[1])
             ports = []
             continue
         match = re.search( r'Port (\d+): Dev (\d+), If (\d+),', i )
         if not match:
             raise ValueError( f'unexpected format in "{i}"')
-            continue
         while indent <= len(ports):
             ports.pop()
-        port = int( match.group(1) )
+        port = int(match[1])
         ports.append( port )
-        device = int( match.group(2) )
-        interface = int( match.group(3) )
+        device = int(match[2])
+        interface = int(match[3])
         bus_device = f'{bus}-{device}'
         yield (bus, device, interface, ports)
 
@@ -70,15 +69,19 @@ def tree():
 def devices_by_vendor( vid ):
     """
     """
-    df = subprocess.run( ['lsusb', '-d', vid + ':'],
-                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                         universal_newlines=True, timeout=2 )
+    df = subprocess.run(
+        ['lsusb', '-d', f'{vid}:'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        universal_newlines=True,
+        timeout=2,
+    )
     for i in df.stdout.split('\n'):
         if i:
             match = re.search( r'^Bus (\d+) Device (\d+):', i )
             if not match:
                 raise ValueError( i )
-            bus = int( match.group(1) )
-            device = int( match.group(2) )
+            bus = int(match[1])
+            device = int(match[2])
             yield f'{bus}-{device}'
 

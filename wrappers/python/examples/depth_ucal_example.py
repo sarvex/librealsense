@@ -121,7 +121,7 @@ def main(argv):
             operation = input(operation_str)
 
             config = rs.config()
-            if (( operation == 'C') or ( operation == 'T')):    # Host assistance requires HD resolution
+            if operation in ['C', 'T']:    # Host assistance requires HD resolution
                 config.enable_stream(rs.stream.depth, 1280, 720, rs.format.z16, 30)
             else:
                 config.enable_stream(rs.stream.depth, 256, 144, rs.format.z16, 90)
@@ -132,7 +132,7 @@ def main(argv):
             # prepare device
             thermal_compensation    = 0
             emitter                 = 0
-            if (( operation.lower() == 'c') or ( operation.lower() == 't')):
+            if operation.lower() in ['c', 't']:
                 depth_sensor = conf.get_device().first_depth_sensor()
                 if depth_sensor.supports(rs.option.emitter_enabled):
                     emitter = depth_sensor.get_option(rs.option.emitter_enabled)
@@ -172,7 +172,7 @@ def main(argv):
                 print("health factor = ", health)
 
             # revert device in previous state
-            if (( operation.lower() == 'c') or ( operation.lower() == 't')):
+            if operation.lower() in ['c', 't']:
                 depth_sensor = conf.get_device().first_depth_sensor()
                 if depth_sensor.supports(rs.option.emitter_enabled):
                     depth_sensor.set_option(rs.option.emitter_enabled, emitter)

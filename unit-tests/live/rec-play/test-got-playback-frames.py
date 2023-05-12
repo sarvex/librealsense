@@ -24,10 +24,7 @@ color_sensor = dev.first_color_sensor()
 # The test also checks frame drops, therefore D400-specific relaxation must apply
 # The follow code is borrowed fro test-drops-on-set.py and later can be merged/refactored
 product_line = dev.get_info(rs.camera_info.product_line)
-is_d400 = False
-if product_line == "D400":
-    is_d400 = True   # Allow for frame counter reset while streaming
-
+is_d400 = product_line == "D400"
 # Our KPI is to prevent sequential frame drops, therefore single frame drop is allowed.
 allowed_drops = 1
 
@@ -105,17 +102,15 @@ def stop_pipeline( pipeline ):
             test.unexpected_exception()
 
 def stop_sensor( sensor ):
-    if sensor:
-        # if the sensor is already closed get_active_streams returns an empty list
-        if sensor.get_active_streams():
-            try:
-                sensor.stop()
-            except RuntimeError as rte:
-                if str( rte ) != "stop_streaming() failed. UVC device is not streaming!":
-                    test.unexpected_exception()
-            except Exception:
+    if sensor and sensor.get_active_streams():
+        try:
+            sensor.stop()
+        except RuntimeError as rte:
+            if str( rte ) != "stop_streaming() failed. UVC device is not streaming!":
                 test.unexpected_exception()
-            sensor.close()
+        except Exception:
+            test.unexpected_exception()
+        sensor.close()
 
 # create temporary folder to record to that will be deleted automatically at the end of the script
 # (requires that no files are being held open inside this directory. Important to not keep any handle open to a file
